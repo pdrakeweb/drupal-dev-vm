@@ -12,3 +12,4 @@ geerlingguy.composer
 geerlingguy.drush
 geerlingguy.daemonize
 geerlingguy.mailhog
+thydel.patch

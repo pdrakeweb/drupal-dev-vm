@@ -2,6 +2,12 @@
 - name: Create Drupal database.
   mysql_db: "db={{ drupal_mysql_database }} state=present"
 
+- name: Create Drupal database user grant.
+  mysql_user: "name={{ drupal_mysql_user }} host=% password={{ drupal_mysql_password }} priv={{ drupal_mysql_database }}.*:ALL state=present"
+
+- name: Create Drupal database user grant.
+  mysql_user: "name={{ drupal_mysql_user }} host=localhost password={{ drupal_mysql_password }} priv={{ drupal_mysql_database }}.*:ALL state=present"
+
 - name: Remove default virtualhost file.
   file:
     path: /etc/apache2/sites-enabled/000-default.conf
@@ -15,42 +21,7 @@
 - name: Generate Drupal site with drush makefile.
   command: "drush make -y /vagrant/drupal.make.yml {{ drupal_core_path }}"
   when: drupal_site.stat.exists == false
-  sudo: no
-
-- name: Install Drupal (standard profile) with drush.
-  command: >
-    drush si {{ drupal_install_profile | default('standard') }} -y
-    --site-name="{{ drupal_site_name }}"
-    --account-name=admin
-    --account-pass=admin
-    --db-url=mysql://{{ drupal_mysql_user }}:{{ drupal_mysql_password }}@localhost/{{ drupal_mysql_database }}
-    chdir={{ drupal_core_path }}
   notify: restart webserver
-  when: drupal_site.stat.exists == false
-  sudo: no
-
-- name: Install modules with drush.
-  command: >
-    drush en -y devel
-    chdir={{ drupal_core_path }}
-  when: drupal_site.stat.exists == false
-  sudo: no
-
-- name: Set the custom module directory path for Drupal < 8.
-  set_fact:
-    drupal_custom_modules_path: "{{ drupal_core_path }}/sites/all/modules/custom"
-  when: drupal_major_version|int < 8
-
-- name: Set the custom module directory path for Drupal = 8.
-  set_fact:
-    drupal_custom_modules_path: "{{ drupal_core_path }}/modules/custom"
-  when: drupal_major_version|int == 8
-
-- name: Symlink custom modules directory into place.
-  file:
-    src: /vagrant/custom_modules
-    dest: "{{ drupal_custom_modules_path }}"
-    state: link
   sudo: no
 
 - name: Update ownership of all files within drupal_core_path.

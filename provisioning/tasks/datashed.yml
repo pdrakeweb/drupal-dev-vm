@@ -1,0 +1,60 @@
+---
+- name: Check if Drupal is already set up.
+  stat: "path=/usr/share/php/HTML/QuickForm"
+  register: pear_packages
+
+- name: Install pear packages
+  command: pear install HTML_Quickform HTML_Common Math_Stats
+  when: pear_packages.stat.exists == false
+
+- name: Create drush site alias file.
+  template:
+    src: ../templates/site.aliases.drushrc.php.tpl
+    dest: /home/vagrant/.drush/{{ drupal_site_name }}.aliases.drushrc.php
+    owner: vagrant
+    group: vagrant
+    mode: 0640
+
+- name: Check if the Datashed database is already imported.
+  stat: "path=/var/lib/mysql/datashed_org/d2_users.frm"
+  register: datashed_db
+
+- name: Check if the Datashed files are already imported.
+  stat: "path=/var/www/drupal/sites/default/files/pictures"
+  register: datashed_files
+
+- name: Patch drush to properly support db prefixes
+  patch: patchfile=/vagrant/patches/drush.patch strip=1 basedir=/usr/local/share/drush
+
+- name: Sync the Datashed database via drush.
+  command: drush sql-sync @{{ drupal_site_name }}.prod-db @{{ drupal_site_name }}.dev -y -v
+  when: datashed_sync_db and not datashed_db.stat.exists
+  sudo: no
+
+- name: Sanitize the Datashed database via drush.
+  command: drush sql-sanitize @{{ drupal_site_name }}.dev --db-prefix -y -v
+  args:
+    chdir: /var/www/drupal
+  when: datashed_sync_db and not datashed_db.stat.exists
+  sudo: no
+
+- name: Clear cache via drush.
+  command: drush @{{ drupal_site_name }}.dev cc all -y -v
+  args:
+    chdir: /var/www/drupal
+  when: datashed_sync_db and not datashed_db.stat.exists
+  sudo: no
+
+- name: Sync the Datashed files via drush.
+  command: drush -y -v rsync @datashed.prod-files:%files/ @datashed.dev:%files
+  when: datashed_sync_files and not datashed_files.stat.exists
+  sudo: no
+
+- name: Update ownership of Datashed files.
+  file:
+    path: "{{ drupal_core_path }}/sites/default/files"
+    owner: vagrant
+    group: www-data
+    mode: 0775
+    recurse: yes
+  

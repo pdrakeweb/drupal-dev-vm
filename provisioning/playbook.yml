@@ -17,6 +17,7 @@
     - { role: geerlingguy.php-mysql, tags: ['php'] }
     - { role: geerlingguy.composer, tags: ['composer'] }
     - { role: geerlingguy.drush, tags: ['drush'] }
+    - thydel.patch
     # Roles to be installed conditionally.
     - {
       role: geerlingguy.php-xdebug,
@@ -42,3 +43,4 @@
   tasks:
     - include: tasks/www.yml
     - include: tasks/drupal.yml
+    - include: tasks/datashed.yml

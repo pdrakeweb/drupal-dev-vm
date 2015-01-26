@@ -26,3 +26,11 @@
     regexp: "^127.0.0.1  {{ drupal_domain }}$"
     line: "127.0.0.1  {{ drupal_domain }}"
     state: present
+
+- name: Set SSH config
+  template:
+    src: ../templates/ssh_config.tpl
+    dest: /home/vagrant/.ssh/config
+    owner: vagrant
+    group: vagrant
+    mode: 0640

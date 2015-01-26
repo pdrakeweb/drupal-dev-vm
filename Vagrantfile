@@ -17,6 +17,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.hostname = vconfig['vagrant_hostname']
   config.vm.network :private_network, ip: vconfig['vagrant_ip']
   config.ssh.insert_key = false
+  config.ssh.forward_agent = true
 
   config.vm.box = "geerlingguy/ubuntu1404"
 
@@ -39,6 +40,11 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     # Provisioning configuration for Ansible (for Mac/Linux hosts).
     config.vm.provision "ansible" do |ansible|
       ansible.playbook = "provisioning/playbook.yml"
+      ansible.verbose = "vvvv"
+      ansible.raw_ssh_args = [
+        "-o UserKnownHostsFile=/dev/null",
+        "-o ForwardAgent=yes",
+      ]
       ansible.sudo = true
     end
   end
