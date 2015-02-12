@@ -15,7 +15,7 @@
   notify: restart webserver
 
 - name: Check if Drupal is already set up.
-  stat: "path={{ drupal_core_path }}"
+  stat: "path={{ drupal_core_path }}/index.php"
   register: drupal_site
 
 - name: Generate Drupal site with drush makefile.
