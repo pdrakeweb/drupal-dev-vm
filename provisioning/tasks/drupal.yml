@@ -5,9 +5,6 @@
 - name: Create Drupal database user grant.
   mysql_user: "name={{ drupal_mysql_user }} host=% password={{ drupal_mysql_password }} priv={{ drupal_mysql_database }}.*:ALL state=present"
 
-- name: Create Drupal database user grant.
-  mysql_user: "name={{ drupal_mysql_user }} host=localhost password={{ drupal_mysql_password }} priv={{ drupal_mysql_database }}.*:ALL state=present"
-
 - name: Remove default virtualhost file.
   file:
     path: /etc/apache2/sites-enabled/000-default.conf
